@@ -6,12 +6,7 @@ from servidor import Servidor
 
 class Cliente:
     def __init__(self):
-        self.__clientes = []
         self.servidor = Servidor()
-    
-    @property
-    def clientes(self):
-        return self.__clientes
 
     def cadastrar_cliente(self):
         login = input('Digite nome de usuário:')
@@ -39,6 +34,8 @@ class Cliente:
             return
         
         print('login realizado')
+
+        
 
     def realizar_pbkdf(self, senha):
         salt = 'madonna'

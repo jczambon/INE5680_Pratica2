@@ -1,4 +1,5 @@
 #pip install pycryptodome
+#pip install qrcode
 from cliente import Cliente
 from servidor import Servidor
 
