@@ -6,19 +6,16 @@ from servidor import Servidor
 
 class Cliente:
     def __init__(self):
-        self.__clientes = []
         self.servidor = Servidor()
-    
-    @property
-    def clientes(self):
-        return self.__clientes
 
     def cadastrar_cliente(self):
         login = input('Digite nome de usuário:')
         senha = input('Digite a senha:')
         chave = self.realizar_pbkdf(senha)
-        self.servidor.cadastrar_cliente(login, chave)
-        print('Usuário cadastrado com sucesso!')
+        usuario_criado = self.servidor.cadastrar_cliente(login, chave)
+        if usuario_criado is False:
+            return
+        print('cliente cadastrado com sucesso!')
 
     def realizar_login(self):
         login = input('Digite nome de usuário:')
@@ -28,8 +25,12 @@ class Cliente:
         if existe_usuario is False:
             print('cliente não encontrado')
             return
-        #fazer o 2fa
+        
+        #2fa
+        self.servidor.realizar_2fa()
         print('login realizado')
+
+        
 
     def realizar_pbkdf(self, senha):
         salt = 'madonna'
