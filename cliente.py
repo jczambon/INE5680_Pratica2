@@ -16,19 +16,28 @@ class Cliente:
     def cadastrar_cliente(self):
         login = input('Digite nome de usuário:')
         senha = input('Digite a senha:')
+
         chave = self.realizar_pbkdf(senha)
-        self.servidor.cadastrar_cliente(login, chave)
+        qrcode_auth = self.servidor.cadastrar_cliente(login, chave)
+
+        if qrcode_auth is False:
+            return
+        
+        qrcode_auth.show()
+
         print('Usuário cadastrado com sucesso!')
 
     def realizar_login(self):
         login = input('Digite nome de usuário:')
         senha = input('Digite a senha:')
+        
         chave = self.realizar_pbkdf(senha)
         existe_usuario = self.servidor.buscar_cliente(login, chave)
+
         if existe_usuario is False:
-            print('cliente não encontrado')
+            print('cliente e/ou senha inválidos')
             return
-        #fazer o 2fa
+        
         print('login realizado')
 
     def realizar_pbkdf(self, senha):

@@ -7,7 +7,7 @@ cliente = Cliente()
 if __name__ == "__main__":
     
     while True:
-        print('\nO que você deseja fazer? \n1 - Realizar Cadastrado \n2 - Realizar Login \n3 - Sair')
+        print('\nO que você deseja fazer? \n1 - Realizar Cadastro \n2 - Realizar Login \n3 - Sair')
         opcao = input()
         if opcao == '1':
             cliente.cadastrar_cliente()
