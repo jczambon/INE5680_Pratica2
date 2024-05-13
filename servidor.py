@@ -8,13 +8,11 @@ from pyotp.totp import TOTP
 import socket
 from deep_translator import GoogleTranslator
 import base64
-import csv
 
 
 class Servidor:
     def __init__(self) -> None:
         self.__clientes = {}
-        self.carregar_clientes_do_csv()
 
         self.host = input("Host/IP [Default: localhost]: ") or "localhost"
         self.port = int(input("Porta [Default: 8080]: ") or "8080")
@@ -71,15 +69,6 @@ class Servidor:
                     #conn.sendall(str(msg_enviar).encode())   # envia numero da mensagem
                     #i += 1
     
-    def carregar_clientes_do_csv(self):
-        try:
-            with open('clientes.csv', mode='r') as file:
-                reader = csv.reader(file)
-                for row in reader:
-                    login, chave_scrypt = row
-                    self.clientes[login] = chave_scrypt
-        except FileNotFoundError:
-            print("Arquivo de clientes não encontrado.")
 
     def cadastrar_cliente(self):
         self.conn.sendall(str('#cadastrar').encode())
@@ -98,10 +87,6 @@ class Servidor:
         
         chave_scrypt = self.realizar_scrypt(login+chave, login)
         self.clientes[login] = chave_scrypt
-
-        with open('clientes.csv', mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([login, chave_scrypt])
             
         totp_auth = TOTP(base64.b32encode(chave_scrypt)).provisioning_uri(name=login, issuer_name='JosePedro')
         #qrcod = qrcode.make(totp_auth)
