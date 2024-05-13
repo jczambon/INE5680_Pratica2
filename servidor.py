@@ -5,11 +5,12 @@ from pyotp.totp import TOTP
 import socket
 #import qrcode
 import base64
-
+import csv
 
 class Servidor:
     def __init__(self) -> None:
         self.__clientes = {}
+        self.carregar_clientes_do_csv()
 
         self.host = input("Host/IP [Default: localhost]: ") or "localhost"
         self.port = int(input("Porta [Default: 8080]: ") or "8080")
@@ -121,6 +122,10 @@ class Servidor:
         
         chave_scrypt = self.realizar_scrypt(login+chave)
         self.clientes[login] = chave_scrypt
+
+        with open('clientes.csv', mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([login, chave_scrypt])
         
         totp_auth = TOTP(base64.b32encode(chave_scrypt)).provisioning_uri(name=login, issuer_name='JosePedro')
         #qrcod = qrcode.make(totp_auth)
@@ -129,6 +134,15 @@ class Servidor:
 
         return True
     
+    def carregar_clientes_do_csv(self):
+        try:
+            with open('clientes.csv', mode='r') as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    login, chave_scrypt = row
+                    self.clientes[login] = chave_scrypt
+        except FileNotFoundError:
+            print("Arquivo de clientes não encontrado.")
 
     def realizar_login(self):
         self.conn.sendall(str('#login').encode())
@@ -184,6 +198,6 @@ class Servidor:
         salt = 'madonna'
         chave = PBKDF2(senha, salt, count=1000, hmac_hash_module=hash)
         return chave
-
+    
 
 s = Servidor()
