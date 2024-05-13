@@ -1,3 +1,6 @@
+# Pedro Guimarães Caninas (21100509)
+# José Carlos Zambon de Carvalho (21104934)
+
 from Crypto.Protocol.KDF import scrypt, PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC, SHA256
