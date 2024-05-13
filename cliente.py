@@ -2,8 +2,9 @@ from Crypto.Protocol.KDF import scrypt, PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC, SHA256, SHA512
 import qrcode
-#from servidor import Servidor
+from deep_translator import GoogleTranslator
 import socket
+
 
 class Cliente:
     def __init__(self):
@@ -49,7 +50,7 @@ class Cliente:
         login = input('Digite nome de usuário: ')
         senha = input('Digite a senha: ')
 
-        chave = self.realizar_pbkdf(senha)
+        chave = self.realizar_pbkdf(senha, login)
 
         self.socket.sendall(f"{login}, {chave}".encode())
 
@@ -73,7 +74,7 @@ class Cliente:
         login = input('Digite nome de usuário: ')
         senha = input('Digite a senha: ')
         
-        chave = self.realizar_pbkdf(senha)
+        chave = self.realizar_pbkdf(senha, login)
 
         self.socket.sendall(f"{login}, {chave}".encode())
 
@@ -83,16 +84,13 @@ class Cliente:
         if existe_usuario == "False":
             print('cliente e/ou senha inválidos')
             return
-        
-        #msg_2fa = self.socket.recv(1024)
-        #print(msg_2fa.decode())
 
         while True:
             codigo_2fa = input("Digite o código de 2º fator: ")
             self.socket.sendall(codigo_2fa.encode())
             
             autenticado = self.socket.recv(1024).decode()
-            print(autenticado)
+            #print(autenticado)
             if autenticado == "False":
                 print("Código de 2º fator incorreto")
 
@@ -100,7 +98,7 @@ class Cliente:
                 if autenticado == "True":
                     
                     print('Código de 2º fator validado - Login realizado')
-                    self.chave_sessao = self.realizar_pbkdf(codigo_2fa, SHA256)
+                    self.chave_sessao = self.realizar_pbkdf(codigo_2fa, login, SHA256)
                     self.trocar_mensagens()
                     return True
                 else:
@@ -114,39 +112,51 @@ class Cliente:
         texto_cifrado = cipher.encrypt(msg)
 
         hmac = HMAC.new(chave, digestmod=SHA256)
-        tag = hmac.update(texto_cifrado).digest()
+        tag = hmac.update(cipher.nonce + texto_cifrado).digest()
 
-        return tag + texto_cifrado
+        #print(tag)
+        #print(texto_cifrado)
+        #print("sexo:", self.descriptar_autenticar_msg(cipher.nonce + tag + texto_cifrado, chave))
+
+        return cipher.nonce + tag + texto_cifrado
 
     def descriptar_autenticar_msg(self, msg, chave):
-        tag = msg[0:32]
-        texto_cifrado = msg[32:]
-
+        nonce = msg[0:16]
+        tag = msg[16:48]
+        texto_cifrado = msg[48:]
+        cipher = AES.new(chave, AES.MODE_GCM, nonce)
+        
         try:
             hmac = HMAC.new(chave, digestmod=SHA256)
-            hmac.update(texto_cifrado).verify(tag)
+            hmac.update(nonce + texto_cifrado).verify(tag)
         except:
+            print("mensagem modificada")
             pass
             #mensagem modificada
-        
-        cipher = AES.new(chave, AES.MODE_GCM)
+        #print("dentro da funçao1:", texto_cifrado)
         texto = cipher.decrypt(texto_cifrado)
-        
+        #print("dentro da funçao2:", texto)
         return texto
    
     def trocar_mensagens(self):
         while True:
             msg = input("Digite a mensagem para enviar: ")
             msg = self.encriptar_msg(msg, self.chave_sessao)
-            self.socket.sendall(msg.encode())
+            print("Mensagem encriptada sendo enviada:", msg)
+            #print("chave:", self.chave_sessao)
+            self.socket.sendall(msg)
 
-            msg_resposta = self.socket.recv(1024).decode()
+            
+            msg_resposta = self.socket.recv(1024)
+            print("Mensagem encriptada recebida do servidor:", msg_resposta)
             msg_resposta = self.descriptar_autenticar_msg(msg_resposta, self.chave_sessao)
-            print(f"Resposta do servidor: {msg_resposta}")
+            print(f"Resposta do servidor: {msg_resposta.decode()}")
 
 
-    def realizar_pbkdf(self, senha, hash=SHA512): #usuario, 
-        salt = 'madonna'
+    def realizar_pbkdf(self, senha, salt, hash=SHA512): #usuario,  
+        salt = GoogleTranslator(source='auto', target='la').translate(salt)
+
+        #salt = 'madonna'
         chave = PBKDF2(senha, salt, count=1000, hmac_hash_module=hash)
         return chave
 
