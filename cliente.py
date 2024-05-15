@@ -119,7 +119,6 @@ class Cliente:
 
         #print(tag)
         #print(texto_cifrado)
-        #print("sexo:", self.descriptar_autenticar_msg(cipher.nonce + tag + texto_cifrado, chave))
 
         return cipher.nonce + tag + texto_cifrado
 

@@ -120,6 +120,8 @@ class Servidor:
 
     def encriptar_msg(self, msg, chave):
         msg = msg.encode()
+
+        # colocar IV
         cipher = AES.new(chave, AES.MODE_GCM)
 
         texto_cifrado = cipher.encrypt(msg)
@@ -145,7 +147,6 @@ class Servidor:
         
         cipher = AES.new(chave, AES.MODE_GCM, nonce)
         texto = cipher.decrypt(texto_cifrado)
-        #print("sexo:", texto)
         return texto
 
     def trocar_mensagens(self):
